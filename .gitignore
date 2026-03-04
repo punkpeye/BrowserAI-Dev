@@ -17,6 +17,19 @@ dist
 apps/*/dist
 packages/*/dist
 
+# Stale lockfiles (project uses pnpm)
+package-lock.json
+bun.lockb
+
+# TypeScript build info
+*.tsbuildinfo
+
+# Supabase temp files
+supabase/.temp/
+
+# Claude Code local settings
+.claude/settings.local.json
+
 # Environment
 .env
 .env.local
