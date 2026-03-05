@@ -83,6 +83,9 @@ const Index = () => {
           <Button variant="ghost" size="sm" className="text-muted-foreground text-xs" onClick={() => navigate("/playground")}>
             Playground
           </Button>
+          <Button variant="ghost" size="sm" className="text-muted-foreground text-xs" onClick={() => navigate("/developers")}>
+            Developers
+          </Button>
           <Button variant="ghost" size="sm" className="text-muted-foreground text-xs" asChild>
             <a href="https://github.com/EiffelHack/ai-agent-browser" target="_blank" rel="noopener">GitHub</a>
           </Button>

@@ -45,7 +45,8 @@ export function registerApiKeyRoutes(
         },
       };
     } catch (e: any) {
-      return reply.status(500).send({ success: false, error: e.message });
+      request.log.error(e);
+      return reply.status(500).send({ success: false, error: "Failed to create API key" });
     }
   });
 
@@ -56,7 +57,8 @@ export function registerApiKeyRoutes(
       const keys = await apiKeyService.list(userId);
       return { success: true, result: keys };
     } catch (e: any) {
-      return reply.status(500).send({ success: false, error: e.message });
+      request.log.error(e);
+      return reply.status(500).send({ success: false, error: "Failed to list API keys" });
     }
   });
 
@@ -71,7 +73,8 @@ export function registerApiKeyRoutes(
       }
       return { success: true };
     } catch (e: any) {
-      return reply.status(500).send({ success: false, error: e.message });
+      request.log.error(e);
+      return reply.status(500).send({ success: false, error: "Failed to revoke API key" });
     }
   });
 }

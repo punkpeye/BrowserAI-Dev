@@ -11,6 +11,7 @@ import Compare from "./pages/Compare";
 import Share from "./pages/Share";
 import Playground from "./pages/Playground";
 import Dashboard from "./pages/Dashboard";
+import Developers from "./pages/Developers";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -29,6 +30,7 @@ const App = () => (
             <Route path="/share/:id" element={<Share />} />
             <Route path="/playground" element={<Playground />} />
             <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/developers" element={<Developers />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

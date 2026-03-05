@@ -135,7 +135,8 @@ export function registerBrowseRoutes(
       );
       return { success: true, result };
     } catch (e: any) {
-      return reply.status(500).send({ success: false, error: e.message });
+      request.log.error(e);
+      return reply.status(500).send({ success: false, error: "Search failed" });
     }
   });
 
@@ -154,7 +155,9 @@ export function registerBrowseRoutes(
       const result = await openPage(parsed.data.url, cache);
       return { success: true, result: result.page };
     } catch (e: any) {
-      return reply.status(500).send({ success: false, error: e.message });
+      request.log.error(e);
+      const msg = e.message?.includes("not allowed") ? e.message : "Failed to open page";
+      return reply.status(500).send({ success: false, error: msg });
     }
   });
 
@@ -178,7 +181,8 @@ export function registerBrowseRoutes(
       );
       return { success: true, result };
     } catch (e: any) {
-      return reply.status(500).send({ success: false, error: e.message });
+      request.log.error(e);
+      return reply.status(500).send({ success: false, error: "Extraction failed" });
     }
   });
 
@@ -198,12 +202,12 @@ export function registerBrowseRoutes(
       const shareId = await store.save(parsed.data.query, result);
       return { success: true, result: { ...result, shareId } };
     } catch (e: any) {
-      const status = e.message.includes("Rate limit")
-        ? 429
-        : e.message.includes("credits")
-          ? 402
-          : 500;
-      return reply.status(status).send({ success: false, error: e.message });
+      request.log.error(e);
+      const isRateLimit = e.message?.includes("Rate limit");
+      const isCredits = e.message?.includes("credits");
+      const status = isRateLimit ? 429 : isCredits ? 402 : 500;
+      const msg = isRateLimit ? "Rate limit exceeded" : isCredits ? "Insufficient credits" : "Answer generation failed";
+      return reply.status(status).send({ success: false, error: msg });
     }
   });
 
@@ -223,7 +227,8 @@ export function registerBrowseRoutes(
       const result = await compareAnswers(parsed.data.query, reqEnv, cache);
       return { success: true, result };
     } catch (e: any) {
-      return reply.status(500).send({ success: false, error: e.message });
+      request.log.error(e);
+      return reply.status(500).send({ success: false, error: "Comparison failed" });
     }
   });
 
@@ -237,7 +242,8 @@ export function registerBrowseRoutes(
       }
       return { success: true, result: data };
     } catch (e: any) {
-      return reply.status(500).send({ success: false, error: e.message });
+      request.log.error(e);
+      return reply.status(500).send({ success: false, error: "Failed to retrieve result" });
     }
   });
 

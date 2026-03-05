@@ -9,7 +9,32 @@ export type ParsedPage = {
   byline: string | null;
 };
 
+function isAllowedUrl(url: string): boolean {
+  try {
+    const parsed = new URL(url);
+    if (!["http:", "https:"].includes(parsed.protocol)) return false;
+    const hostname = parsed.hostname;
+    if (
+      hostname === "localhost" ||
+      hostname.startsWith("127.") ||
+      hostname.startsWith("10.") ||
+      hostname.startsWith("192.168.") ||
+      hostname === "0.0.0.0" ||
+      hostname.startsWith("169.254.") ||
+      hostname === "[::1]" ||
+      /^172\.(1[6-9]|2\d|3[01])\./.test(hostname)
+    ) return false;
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 export async function fetchAndParse(url: string): Promise<ParsedPage> {
+  if (!isAllowedUrl(url)) {
+    throw new Error("URL not allowed: only public http/https URLs are supported");
+  }
+
   const res = await fetch(url, {
     headers: {
       "User-Agent": "Mozilla/5.0 (compatible; BrowseAI/1.0)",

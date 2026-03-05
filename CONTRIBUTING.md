@@ -1,6 +1,6 @@
-# Contributing to Browse AI
+# Contributing to BrowseAI
 
-Thanks for your interest in contributing! Browse AI is a deep research engine for AI agents.
+Thanks for your interest in contributing! BrowseAI is a deep research engine for AI agents.
 
 ## Quick Setup
 
@@ -33,7 +33,11 @@ ai-agent-browser/
     mcp/                  # MCP server (npm: browse-ai)
   packages/
     shared/               # Shared types, schemas, constants
+  supabase/
+    migrations/           # Database migrations (timestamp format)
+    functions/            # Supabase Edge Functions
   scripts/                # Build & deploy scripts
+  .github/workflows/      # CI/CD pipelines
 ```
 
 ## Development Commands
@@ -47,6 +51,8 @@ ai-agent-browser/
 | `pnpm test` | Run tests |
 | `pnpm lint` | Lint with ESLint |
 | `pnpm build:all` | Build everything |
+| `pnpm --filter @browse/api exec tsc --noEmit` | Type check API |
+| `pnpm --filter browse-ai exec tsc --noEmit` | Type check MCP |
 
 ## Contribution Rules
 
@@ -54,7 +60,7 @@ ai-agent-browser/
 - **`main` is protected** — no direct pushes
 - All changes must go through a **Pull Request**
 - PRs require at least **1 maintainer approval** before merge
-- CI checks must pass before merge
+- CI checks (lint, type check, build, test) must pass before merge
 
 ### Pull Request Process
 1. **Fork** the repo and create a branch from `main`
@@ -64,7 +70,9 @@ ai-agent-browser/
    ```bash
    pnpm lint
    pnpm test
-   pnpm build:all
+   pnpm --filter @browse/shared build
+   pnpm --filter @browse/api exec tsc --noEmit
+   pnpm --filter browse-ai exec tsc --noEmit
    ```
 5. Write a clear PR description — what changed and why
 6. Wait for maintainer review — changes may be requested
@@ -83,6 +91,34 @@ ai-agent-browser/
 - `node_modules/`, `dist/`, `.vercel/`
 - Large binary files
 
+## Areas to Contribute
+
+### Good First Issues
+- UI improvements and bug fixes in `src/components/`
+- Add loading states or error boundaries
+- Improve mobile responsiveness
+- Add unit tests for existing services
+
+### Frontend (React + Vite)
+- Components and pages in `src/`
+- Uses shadcn/ui, Tailwind CSS, Framer Motion
+- State management with React Query
+
+### Backend API (Fastify)
+- Routes and services in `apps/api/src/`
+- Search, extraction, and analysis pipelines
+- Rate limiting, caching, API key management
+
+### MCP Server
+- Tool implementations in `apps/mcp/src/`
+- Published to npm as `browse-ai`
+- Works with Claude Desktop, Cursor, Windsurf
+
+### Research & Prompts
+- Improve LLM prompts for better extraction
+- Add new research strategies
+- Improve citation and evidence quality
+
 ## Adding a New API Endpoint
 
 1. Add Zod schema in `packages/shared/src/schemas.ts`
@@ -99,26 +135,46 @@ ai-agent-browser/
 2. Add a new `server.tool(...)` call following existing patterns
 3. Test: `SERP_API_KEY=... OPENROUTER_API_KEY=... pnpm dev:mcp`
 
+## CI/CD Pipeline
+
+CI runs automatically on every PR:
+- **Lint** — ESLint checks
+- **Type Check** — TypeScript strict mode across all packages
+- **Build** — Frontend, API, and MCP compile successfully
+- **Test** — Vitest test suite passes
+
+On merge to `main`:
+- **Vercel** auto-deploys frontend + API
+- **Supabase migrations** run via GitHub Actions (if migration files changed)
+- **Supabase Edge Functions** deploy via GitHub Actions (if function files changed)
+- **npm publish** triggers for browse-ai MCP package (if `apps/mcp/` changed and version bumped)
+
 ## Publishing the MCP Package (Maintainers Only)
 
-The `browse-ai` npm package lives in `apps/mcp/`. To publish a new version:
+The `browse-ai` npm package lives in `apps/mcp/`. Publishing is automated via CI when the version in `apps/mcp/package.json` is bumped and changes merge to `main`.
+
+To publish manually:
 
 ```bash
 cd apps/mcp
-
-# Bump version (pick one)
-npm version patch   # 0.1.1 → 0.1.2 (bug fixes)
-npm version minor   # 0.1.2 → 0.2.0 (new features)
-npm version major   # 0.2.0 → 1.0.0 (breaking changes)
-
-# Publish
-npm publish --access public --otp=YOUR_2FA_CODE
+npm version patch   # or minor/major
+npm publish --access public
 ```
 
 ### When to Bump Versions
 - **patch** (0.0.x): Bug fixes, typos, minor improvements
 - **minor** (0.x.0): New MCP tools, new features, non-breaking changes
 - **major** (x.0.0): Breaking changes to tool names, required env vars, or API
+
+## Required Secrets (Maintainers Only)
+
+| Secret | Purpose |
+|--------|---------|
+| `SUPABASE_ACCESS_TOKEN` | Supabase CLI auth for migrations/functions |
+| `SUPABASE_PROJECT_REF` | Supabase project identifier |
+| `NPM_TOKEN` | npm publish auth for browse-ai package |
+
+Contributors don't need these — CI handles everything on merge.
 
 ## Reporting Issues
 
