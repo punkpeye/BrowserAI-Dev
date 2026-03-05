@@ -10,6 +10,7 @@ import { openPage } from "../services/scrape.js";
 import { extractFromPage } from "../services/extract.js";
 import { answerQuery } from "../services/answer.js";
 import { compareAnswers } from "../services/compare.js";
+import { getUserIdFromRequest } from "../lib/auth.js";
 import type { CacheService } from "../services/cache.js";
 import type { ResultStore } from "../services/store.js";
 import type { ApiKeyService } from "../services/apiKeys.js";
@@ -41,7 +42,10 @@ async function getRequestEnv(
   env: Env,
   apiKeyService: ApiKeyService | null,
   cache: CacheService
-): Promise<{ env: Env; isOwnKeys: boolean }> {
+): Promise<{ env: Env; isOwnKeys: boolean; userId: string | null }> {
+  // Try to get userId from JWT (for logged-in web users)
+  let userId = getUserIdFromRequest(request);
+
   // Priority 1: BYOK headers
   const tavilyKey = request.headers["x-tavily-key"] as string | undefined;
   const openrouterKey = request.headers["x-openrouter-key"] as string | undefined;
@@ -54,6 +58,7 @@ async function getRequestEnv(
         ...(openrouterKey && { OPENROUTER_API_KEY: openrouterKey }),
       },
       isOwnKeys: true,
+      userId,
     };
   }
 
@@ -75,6 +80,7 @@ async function getRequestEnv(
       }
 
       if (resolved) {
+        userId = resolved.userId;
         return {
           env: {
             ...env,
@@ -82,13 +88,14 @@ async function getRequestEnv(
             OPENROUTER_API_KEY: resolved.openrouterKey,
           },
           isOwnKeys: true,
+          userId,
         };
       }
     }
   }
 
   // Priority 3: Default env
-  return { env, isOwnKeys: false };
+  return { env, isOwnKeys: false, userId };
 }
 
 async function checkDemoLimit(
@@ -122,7 +129,7 @@ export function registerBrowseRoutes(
         .status(400)
         .send({ success: false, error: parsed.error.message });
 
-    const { env: reqEnv, isOwnKeys } = await getRequestEnv(request, env, apiKeyService, cache);
+    const { env: reqEnv, isOwnKeys, userId } = await getRequestEnv(request, env, apiKeyService, cache);
     const limitError = await checkDemoLimit(request, cache, isOwnKeys);
     if (limitError) return reply.status(429).send({ success: false, error: limitError });
 
@@ -133,6 +140,7 @@ export function registerBrowseRoutes(
         cache,
         parsed.data.limit
       );
+      if (userId) store.save(parsed.data.query, { answer: "", claims: [], sources: [], confidence: 0, trace: [] }, userId, "search");
       return { success: true, result };
     } catch (e: any) {
       request.log.error(e);
@@ -193,13 +201,13 @@ export function registerBrowseRoutes(
         .status(400)
         .send({ success: false, error: parsed.error.message });
 
-    const { env: reqEnv, isOwnKeys } = await getRequestEnv(request, env, apiKeyService, cache);
+    const { env: reqEnv, isOwnKeys, userId } = await getRequestEnv(request, env, apiKeyService, cache);
     const limitError = await checkDemoLimit(request, cache, isOwnKeys);
     if (limitError) return reply.status(429).send({ success: false, error: limitError });
 
     try {
       const result = await answerQuery(parsed.data.query, reqEnv, cache);
-      const shareId = await store.save(parsed.data.query, result);
+      const shareId = await store.save(parsed.data.query, result, userId || undefined, "answer");
       return { success: true, result: { ...result, shareId } };
     } catch (e: any) {
       request.log.error(e);
@@ -251,5 +259,21 @@ export function registerBrowseRoutes(
   app.get("/browse/stats", async () => {
     const count = await store.count();
     return { success: true, result: { totalQueries: count } };
+  });
+
+  // User stats (auth required)
+  app.get("/user/stats", async (request, reply) => {
+    const userId = getUserIdFromRequest(request);
+    if (!userId) return reply.status(401).send({ success: false, error: "Not authenticated" });
+    const stats = await store.getUserStats(userId);
+    return { success: true, result: stats };
+  });
+
+  // User query history (auth required)
+  app.get("/user/history", async (request, reply) => {
+    const userId = getUserIdFromRequest(request);
+    if (!userId) return reply.status(401).send({ success: false, error: "Not authenticated" });
+    const history = await store.getUserHistory(userId);
+    return { success: true, result: history };
   });
 }

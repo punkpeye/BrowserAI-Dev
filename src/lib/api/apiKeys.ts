@@ -55,3 +55,25 @@ export async function listApiKeys(): Promise<ApiKeyRecord[]> {
 export async function revokeApiKey(id: string): Promise<void> {
   return authFetch(`/api-keys/${id}`, { method: "DELETE" });
 }
+
+// User stats & history
+
+export interface UserStats {
+  totalQueries: number;
+  thisMonth: number;
+}
+
+export interface QueryHistoryItem {
+  id: string;
+  query: string;
+  tool: string;
+  created_at: string;
+}
+
+export async function fetchUserStats(): Promise<UserStats> {
+  return authFetch("/user/stats");
+}
+
+export async function fetchUserHistory(): Promise<QueryHistoryItem[]> {
+  return authFetch("/user/history");
+}
