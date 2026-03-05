@@ -13,6 +13,11 @@ const LLM_ENDPOINT = "https://openrouter.ai/api/v1/chat/completions";
 const TAVILY_ENDPOINT = "https://api.tavily.com/search";
 const MAX_PAGE_CONTENT_LENGTH = 3000;
 
+// --- API mode (BrowseAI Dev API key) ---
+const BROWSE_API_KEY = process.env.BROWSE_API_KEY;
+const BROWSE_API_URL = process.env.BROWSE_API_URL || "https://ai-agent-browser.vercel.app/api";
+const API_MODE = !!BROWSE_API_KEY;
+
 // --- CLI handling ---
 const args = process.argv.slice(2);
 
@@ -64,11 +69,6 @@ if (args[0] === "setup") {
   // --- Start MCP server ---
   startServer();
 }
-
-// --- API mode (BrowseAI Dev API key) ---
-const BROWSE_API_KEY = process.env.BROWSE_API_KEY;
-const BROWSE_API_URL = process.env.BROWSE_API_URL || "https://ai-agent-browser.vercel.app/api";
-const API_MODE = !!BROWSE_API_KEY;
 
 async function apiCall(path: string, body: Record<string, unknown>) {
   const res = await fetch(`${BROWSE_API_URL}${path}`, {
