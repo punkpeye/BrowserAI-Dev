@@ -154,6 +154,8 @@ const Developers = () => {
                 what libraries exist, what patterns work. So I tell my agents to research before they code.
                 But they hallucinate. They recommend packages that don't exist, reference APIs that were deprecated years ago,
                 and confidently describe solutions that simply don't work.
+                The result? Either the product gets built wrong and I discover it later, or I end up doing the
+                research myself anyway — defeating the whole point of using AI to move faster.
               </p>
               <p>
                 The cost of this isn't just wrong answers — it's eroded trust. When you can't tell if an AI response
