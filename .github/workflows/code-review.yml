@@ -47,6 +47,15 @@ jobs:
                unauthenticated users.
             8. **Cross-package consistency** — changes to shared types must be reflected in API, MCP,
                and Python SDK.
+            9. **Admin access control** — admin users are stored in the `admins` table in Supabase (not
+               hardcoded). Admin-only endpoints (GET /waitlist) verify JWT via Supabase auth, then check
+               the user's email exists in the `admins` table. The `admins` table is RLS-protected and only
+               accessible via service role key. Ensure no endpoint allows users to add themselves as admin,
+               bypass the admin check, or access admin data without proper authorization.
+            10. **Waitlist security** — POST /waitlist is public (email-only, no auth required).
+                GET /waitlist and GET /waitlist/status require valid JWT. The waitlist table has a unique
+                constraint on email to prevent duplicates. Ensure no endpoint leaks other users' emails
+                or waitlist data to non-admin users.
 
             Skip style nitpicks and minor formatting. Focus on things that would break production,
             compromise security, or confuse users. Post inline comments on specific lines. Be concise.
@@ -85,12 +94,27 @@ jobs:
                modify permissions, or alter publish pipelines
             8. **Access control** — changes to .github/CODEOWNERS that modify who can approve PRs,
                or any changes that weaken branch protection
+            9. **Admin privilege escalation** — admin users are stored in the `admins` table in Supabase,
+               only accessible via service role key. The API checks admin status by querying this table
+               after JWT verification. Flag any changes that: insert into the admins table without
+               authorization, bypass the isAdmin() check on admin endpoints, expose the admins table
+               to client-side queries, or add new admin-only endpoints without proper JWT + admin verification.
+            10. **Waitlist data leakage** — GET /waitlist returns all user emails and is admin-only.
+                GET /waitlist/status only returns a boolean for the authenticated user's own email.
+                Flag any changes that expose other users' emails to non-admin users, allow enumeration
+                of waitlist emails, or return waitlist data in public endpoints.
+            11. **JWT verification** — admin endpoints verify JWTs by calling Supabase /auth/v1/user
+                with the bearer token. Flag if anyone replaces this with local JWT decoding without
+                signature verification, or trusts client-side claims without server validation.
 
             CRITICAL files to flag if modified:
             - .github/CODEOWNERS → warn: "This changes who can approve PRs"
             - .github/workflows/*.yml → warn: "This modifies CI/CD pipelines with secrets access"
             - apps/api/src/lib/crypto.ts → warn: "This modifies API key encryption"
             - apps/api/src/lib/auth.ts → warn: "This modifies authentication logic"
+            - apps/api/src/routes/waitlist.ts → warn: "This modifies waitlist endpoints"
+            - apps/api/src/routes/admin.ts → warn: "This modifies admin access control and metrics"
+            - apps/api/src/lib/admin.ts → warn: "This modifies admin authentication helpers"
             - package.json scripts → warn: "Supply chain risk — review scripts carefully"
             - Any .env* file → warn: "Possible secrets exposure"
 

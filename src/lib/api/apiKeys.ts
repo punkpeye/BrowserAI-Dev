@@ -77,3 +77,67 @@ export async function fetchUserStats(): Promise<UserStats> {
 export async function fetchUserHistory(): Promise<QueryHistoryItem[]> {
   return authFetch("/user/history");
 }
+
+// Admin: waitlist
+
+export interface WaitlistEntry {
+  id: string;
+  email: string;
+  source: string;
+  created_at: string;
+}
+
+export async function fetchWaitlist(): Promise<{ entries: WaitlistEntry[]; total: number }> {
+  return authFetch("/waitlist");
+}
+
+export async function checkWaitlistStatus(): Promise<{ onWaitlist: boolean; isAdmin: boolean }> {
+  return authFetch("/waitlist/status");
+}
+
+// Admin
+
+export interface AdminMetrics {
+  totalQueries: number;
+  queriesToday: number;
+  avgConfidence: number | null;
+  avgResponseTimeMs: number | null;
+  cacheHitRate: number | null;
+  waitlistCount: number;
+  admins: { id: string; email: string; created_at: string }[];
+  clientBreakdown: { client: string; count: number }[];
+  packageStats: {
+    npm: { weeklyDownloads: number; totalDownloads: number } | null;
+    pypi: { weeklyDownloads: number; totalDownloads: number } | null;
+    github: { stars: number; forks: number; openIssues: number } | null;
+  };
+}
+
+export async function fetchAdminMetrics(): Promise<AdminMetrics> {
+  return authFetch("/admin/metrics");
+}
+
+export async function addAdmin(email: string): Promise<{ message: string }> {
+  return authFetch("/admin/admins", {
+    method: "POST",
+    body: JSON.stringify({ email }),
+  });
+}
+
+export async function removeAdmin(email: string): Promise<{ message: string }> {
+  return authFetch(`/admin/admins/${encodeURIComponent(email)}`, {
+    method: "DELETE",
+  });
+}
+
+export async function joinWaitlist(email: string, source = "dashboard"): Promise<{ message: string }> {
+  const API_BASE = import.meta.env.VITE_API_URL || "/api";
+  const res = await fetch(`${API_BASE}/waitlist`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, source }),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || "Failed to join waitlist");
+  return data;
+}
