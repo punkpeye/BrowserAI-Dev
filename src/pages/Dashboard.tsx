@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Zap, ArrowLeft, LayoutDashboard, Activity, History, Settings, Search, FileText, GitCompare, ExternalLink } from "lucide-react";
+import { Zap, ArrowLeft, LayoutDashboard, Activity, History, Settings, Search, FileText, GitCompare, ExternalLink, CheckCircle2, Sparkles, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -11,6 +11,8 @@ import { ApiKeyManager } from "@/components/ApiKeyManager";
 import {
   fetchUserStats,
   fetchUserHistory,
+  checkWaitlistStatus,
+  joinWaitlist,
   type UserStats,
   type QueryHistoryItem,
 } from "@/lib/api/apiKeys";
@@ -41,6 +43,9 @@ const Dashboard = () => {
   const [stats, setStats] = useState<UserStats | null>(null);
   const [history, setHistory] = useState<QueryHistoryItem[]>([]);
   const [loadingData, setLoadingData] = useState(true);
+  const [onWaitlist, setOnWaitlist] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [joiningWaitlist, setJoiningWaitlist] = useState(false);
 
   const loadData = useCallback(async () => {
     try {
@@ -54,6 +59,29 @@ const Dashboard = () => {
     }
   }, []);
 
+  const checkWaitlist = useCallback(async () => {
+    try {
+      const data = await checkWaitlistStatus();
+      setOnWaitlist(data.onWaitlist);
+      setIsAdmin(data.isAdmin);
+    } catch {
+      // Silently fail
+    }
+  }, []);
+
+  const handleJoinWaitlist = async () => {
+    if (!user?.email) return;
+    setJoiningWaitlist(true);
+    try {
+      await joinWaitlist(user.email, "dashboard");
+      setOnWaitlist(true);
+    } catch {
+      // Silently fail
+    } finally {
+      setJoiningWaitlist(false);
+    }
+  };
+
   useEffect(() => {
     if (!loading && !user) {
       navigate("/");
@@ -61,8 +89,11 @@ const Dashboard = () => {
   }, [user, loading, navigate]);
 
   useEffect(() => {
-    if (user) loadData();
-  }, [user, loadData]);
+    if (user) {
+      loadData();
+      checkWaitlist();
+    }
+  }, [user, loadData, checkWaitlist]);
 
   if (loading) {
     return (
@@ -97,6 +128,17 @@ const Dashboard = () => {
             <LayoutDashboard className="w-5 h-5 text-accent" />
             <h1 className="text-2xl font-bold">Dashboard</h1>
             <Badge variant="outline" className="text-xs">Free</Badge>
+            {isAdmin && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="ml-auto text-xs gap-1.5"
+                onClick={() => navigate("/admin")}
+              >
+                <Shield className="w-3.5 h-3.5" />
+                Admin
+              </Button>
+            )}
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -187,22 +229,34 @@ const Dashboard = () => {
           <Card className="border-amber-400/20">
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
-                <span className="text-amber-400">&#9733;</span>
+                <Sparkles className="w-4 h-4 text-amber-400" />
                 BrowseAI Dev Pro
               </CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-sm text-muted-foreground mb-4">Coming soon — unlock advanced features for power users and teams.</p>
               <ul className="text-sm space-y-2 text-muted-foreground mb-4">
-                <li>Higher rate limits and priority processing</li>
-                <li>Team API keys and shared usage dashboards</li>
-                <li>Advanced analytics and query insights</li>
-                <li>Webhook notifications and API callbacks</li>
-                <li>Priority support</li>
+                <li className="flex items-center gap-2"><Sparkles className="w-3.5 h-3.5 text-amber-400 shrink-0" /> Managed keys — no BYOK needed</li>
+                <li className="flex items-center gap-2"><Sparkles className="w-3.5 h-3.5 text-amber-400 shrink-0" /> 15+ sources per query</li>
+                <li className="flex items-center gap-2"><Sparkles className="w-3.5 h-3.5 text-amber-400 shrink-0" /> Multi-model verification</li>
+                <li className="flex items-center gap-2"><Sparkles className="w-3.5 h-3.5 text-amber-400 shrink-0" /> Priority queue &amp; webhooks</li>
+                <li className="flex items-center gap-2"><Sparkles className="w-3.5 h-3.5 text-amber-400 shrink-0" /> Team seats &amp; shared access</li>
               </ul>
-              <Button disabled className="w-full">
-                Coming Soon
-              </Button>
+              {onWaitlist ? (
+                <div className="flex items-center justify-center gap-2 py-2 text-sm text-emerald-400">
+                  <CheckCircle2 className="w-4 h-4" />
+                  You're on the waitlist — we'll notify you when it's ready
+                </div>
+              ) : (
+                <Button
+                  onClick={handleJoinWaitlist}
+                  disabled={joiningWaitlist}
+                  className="w-full"
+                  variant="outline"
+                >
+                  {joiningWaitlist ? "Joining..." : "Join the Pro Waitlist"}
+                </Button>
+              )}
             </CardContent>
           </Card>
         </motion.div>
