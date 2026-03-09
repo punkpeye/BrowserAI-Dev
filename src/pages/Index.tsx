@@ -445,7 +445,8 @@ print(result.answer, result.confidence)`}</pre>
                 <button
                   onClick={() => copyText(`curl -X POST https://browseai.dev/api/browse/answer \\
   -H "Content-Type: application/json" \\
-  -H "X-API-Key: bai_your_key" \\
+  -H "X-Tavily-Key: tvly-xxx" \\
+  -H "X-OpenRouter-Key: sk-or-xxx" \\
   -d '{"query": "What causes aurora borealis?"}'`, "api")}
                   className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1"
                 >
@@ -453,7 +454,15 @@ print(result.answer, result.confidence)`}</pre>
                   {copied === "api" ? "Copied" : "Copy"}
                 </button>
               </div>
-              <pre className="text-xs font-mono text-muted-foreground bg-secondary rounded-lg p-4 overflow-x-auto">{`curl -X POST https://browseai.dev/api/browse/answer \\
+              <pre className="text-xs font-mono text-muted-foreground bg-secondary rounded-lg p-4 overflow-x-auto">{`# BYOK — free, no limits
+curl -X POST https://browseai.dev/api/browse/answer \\
+  -H "Content-Type: application/json" \\
+  -H "X-Tavily-Key: tvly-xxx" \\
+  -H "X-OpenRouter-Key: sk-or-xxx" \\
+  -d '{"query": "What causes aurora borealis?"}'
+
+# Or with a BrowseAI API key
+curl -X POST https://browseai.dev/api/browse/answer \\
   -H "Content-Type: application/json" \\
   -H "X-API-Key: bai_your_key" \\
   -d '{"query": "What causes aurora borealis?"}'`}</pre>
