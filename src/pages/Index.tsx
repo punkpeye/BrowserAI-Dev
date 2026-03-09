@@ -125,6 +125,13 @@ const Index = () => {
               <span className="hidden sm:inline">GitHub</span>
             </a>
           </Button>
+          <a
+            href="#waitlist"
+            className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-accent/10 border border-accent/20 text-accent text-xs font-semibold hover:bg-accent/20 transition-colors"
+          >
+            <Sparkles className="w-3 h-3" />
+            Pro Waitlist
+          </a>
           <ApiKeySettings />
           {!authLoading && (user ? <UserMenu /> : <LoginModal />)}
         </div>
@@ -577,21 +584,75 @@ curl -X POST https://browseai.dev/api/browse/answer \\
         </div>
       </section>
 
-      {/* ===== PRO WAITLIST ===== */}
-      <section className="py-24 px-6 border-t border-border">
-        <div className="max-w-3xl mx-auto">
-          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center space-y-6">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-accent/10 border border-accent/20">
-              <Sparkles className="w-3.5 h-3.5 text-accent" />
-              <span className="text-xs font-semibold text-accent">Coming Soon</span>
-            </div>
-            <h2 className="text-3xl md:text-4xl font-bold">BrowseAI Pro</h2>
+      {/* ===== FREE vs PRO ===== */}
+      <section id="waitlist" className="py-24 px-6 border-t border-border scroll-mt-20">
+        <div className="max-w-4xl mx-auto">
+          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">Use it your way</h2>
             <p className="text-muted-foreground max-w-lg mx-auto">
-              Managed API keys, deeper research (15+ sources), multi-model verification,
-              priority queue, team seats, and webhooks. Join the waitlist.
+              Everything works without an account. Sign in to unlock more — or just use BYOK and go.
             </p>
+          </motion.div>
 
-            <div className="flex items-center gap-3 max-w-md mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
+            {/* No account */}
+            <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="p-6 rounded-xl bg-card border border-border">
+              <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground mb-4">No Account</h3>
+              <ul className="space-y-2.5 text-sm">
+                <li className="flex items-start gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-400 mt-0.5 shrink-0" /> 5 free queries/hour</li>
+                <li className="flex items-start gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-400 mt-0.5 shrink-0" /> All 5 tools + compare mode</li>
+                <li className="flex items-start gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-400 mt-0.5 shrink-0" /> BYOK for unlimited access</li>
+                <li className="flex items-start gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-400 mt-0.5 shrink-0" /> MCP + REST API + Python SDK</li>
+              </ul>
+            </motion.div>
+
+            {/* Free login */}
+            <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.1 }} className="p-6 rounded-xl bg-card border border-accent/30">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-sm font-semibold uppercase tracking-wider text-accent">Free Account</h3>
+                <Badge variant="outline" className="text-[10px] text-accent border-accent/30">Recommended</Badge>
+              </div>
+              <ul className="space-y-2.5 text-sm">
+                <li className="flex items-start gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-400 mt-0.5 shrink-0" /> Everything above, plus:</li>
+                <li className="flex items-start gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-400 mt-0.5 shrink-0" /> BrowseAI API key (one key for everything)</li>
+                <li className="flex items-start gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-400 mt-0.5 shrink-0" /> Query history &amp; dashboard</li>
+                <li className="flex items-start gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-400 mt-0.5 shrink-0" /> Usage analytics</li>
+              </ul>
+              <Button
+                variant="outline"
+                size="sm"
+                className="mt-4 w-full text-xs border-accent/30 text-accent hover:bg-accent/10"
+                onClick={() => navigate("/dashboard")}
+              >
+                Sign in — it&apos;s free
+              </Button>
+            </motion.div>
+
+            {/* Pro */}
+            <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.2 }} className="p-6 rounded-xl bg-card border border-border relative overflow-hidden">
+              <div className="absolute top-3 right-3">
+                <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-accent/10 border border-accent/20">
+                  <Sparkles className="w-3 h-3 text-accent" />
+                  <span className="text-[10px] font-semibold text-accent">Coming Soon</span>
+                </div>
+              </div>
+              <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground mb-4">Pro</h3>
+              <ul className="space-y-2.5 text-sm text-muted-foreground">
+                <li className="flex items-start gap-2"><Sparkles className="w-4 h-4 text-accent mt-0.5 shrink-0" /> Managed keys — no BYOK needed</li>
+                <li className="flex items-start gap-2"><Sparkles className="w-4 h-4 text-accent mt-0.5 shrink-0" /> 15+ sources per query</li>
+                <li className="flex items-start gap-2"><Sparkles className="w-4 h-4 text-accent mt-0.5 shrink-0" /> Multi-model verification</li>
+                <li className="flex items-start gap-2"><Sparkles className="w-4 h-4 text-accent mt-0.5 shrink-0" /> Priority queue &amp; webhooks</li>
+                <li className="flex items-start gap-2"><Sparkles className="w-4 h-4 text-accent mt-0.5 shrink-0" /> Team seats &amp; shared access</li>
+              </ul>
+            </motion.div>
+          </div>
+
+          {/* Pro waitlist */}
+          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="max-w-md mx-auto text-center space-y-4">
+            <p className="text-sm text-muted-foreground">
+              Want Pro? Join the waitlist — we&apos;ll let you know when it&apos;s ready.
+            </p>
+            <div className="flex items-center gap-3">
               <div className="relative flex-1">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <input
@@ -611,7 +672,6 @@ curl -X POST https://browseai.dev/api/browse/answer \\
                 {waitlistStatus === "loading" ? "Joining..." : "Join Waitlist"}
               </Button>
             </div>
-
             {waitlistStatus === "success" && (
               <p className="text-sm text-emerald-400 flex items-center justify-center gap-1.5">
                 <CheckCircle2 className="w-4 h-4" /> {waitlistMessage}
@@ -620,20 +680,6 @@ curl -X POST https://browseai.dev/api/browse/answer \\
             {waitlistStatus === "error" && (
               <p className="text-sm text-destructive">{waitlistMessage}</p>
             )}
-
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-4">
-              {[
-                { label: "Managed Keys", desc: "No BYOK hassle" },
-                { label: "15+ Sources", desc: "Deeper evidence" },
-                { label: "Multi-Model", desc: "Cross-verified" },
-                { label: "Team Seats", desc: "Shared access" },
-              ].map((item) => (
-                <div key={item.label} className="p-3 rounded-lg bg-card border border-border text-center">
-                  <p className="text-sm font-semibold">{item.label}</p>
-                  <p className="text-xs text-muted-foreground">{item.desc}</p>
-                </div>
-              ))}
-            </div>
           </motion.div>
         </div>
       </section>
